@@ -4,7 +4,17 @@ import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.OutlinedTextField
 
+/**
+ * Colors for PdfViewer
+ *
+ * @param [fillerPageColor] color of filler for PDF page while the page itself is loading
+ * @param [floatingElementsColor] color of floating "more" menu NOTE: Icon itself derives color from [iconButtonColors] for consistency's sake
+ * @param [loadingIndicatorColor] color of loading indicator
+ * @param [iconButtonColors] responsible for colors of "Go to" button in page menu
+ * @param [textFieldColors] responsible for colors of [OutlinedTextField] in page menu
+ */
 data class PdfViewerColors(
   val fillerPageColor : Color = Color.Gray,
   val floatingElementsColor : Color = Color.LightGray,

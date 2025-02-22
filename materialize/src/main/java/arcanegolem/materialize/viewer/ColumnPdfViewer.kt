@@ -72,6 +72,15 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import android.graphics.Color as LegacyColor
 
+/**
+ * PDFViewer utilizing [LazyColumn]
+ *
+ * @param [modifier] modifier of the [Box] container for [LazyColumn], strongly advised to be defined because [LazyColumn] fits it's size
+ * @param [pdfProvider] see [PdfProvider.UriProvider], [PdfProvider.UrlProvider], [PdfProvider.ResProvider]
+ * @param [colors] see [PdfViewerColors]
+ * @param [options] see [PdfViewerOption]
+ * @param [fillerAspectRatio] aspect ratio of page filler which will be shown while page renders, define it based on estimated PDF page's real aspect ratio
+ */
 @Composable
 fun ColumnPdfViewer(
   modifier: Modifier,

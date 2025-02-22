@@ -32,8 +32,8 @@ class MainActivity : ComponentActivity() {
           ) {
             ColumnPdfViewer(
               modifier = Modifier.fillMaxSize(),
-              pdfProvider = PdfProvider.UrlProvider(
-                url = "https://tndt.idspektr.ru/images/stories/archive/04_2024/tndt_2024_04.pdf",
+              pdfProvider = PdfProvider.ResProvider(
+                resId = R.raw.sample_multipage,
                 bitmapScale = 3,
                 identifier = "sample_multipage"
               ),
