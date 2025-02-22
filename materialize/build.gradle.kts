@@ -2,6 +2,7 @@ plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.compose)
+  alias(libs.plugins.maven.publish)
 }
 
 android {
@@ -28,6 +29,11 @@ android {
   kotlinOptions {
     jvmTarget = "11"
   }
+  publishing {
+    singleVariant("release") {
+      withSourcesJar()
+    }
+  }
 }
 
 dependencies {
@@ -52,4 +58,18 @@ dependencies {
 
   implementation(libs.retrofit)
   implementation(libs.okhttp)
+}
+
+publishing {
+  publications {
+    register<MavenPublication>("release") {
+      groupId = "arcanegolem"
+      artifactId = "materialize"
+      version = "1.0.0"
+
+      afterEvaluate {
+        from(components["release"])
+      }
+    }
+  }
 }
