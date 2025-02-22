@@ -47,7 +47,7 @@ ColumnPdfViewer(
     PdfViewerOption(
       title = "SampleOption2",
       action = {
-        Toast.makeText(context, "Sample text 2", Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, "Another sample text", Toast.LENGTH_SHORT).show()
       }
     )
   ),
