@@ -30,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -132,164 +133,173 @@ fun ColumnPdfViewer(
         }
     )
   ) {
-    LazyColumn(
-      state = lazyListState,
-      modifier = Modifier
-        .fillMaxSize()
-        .then(
-          Modifier
-            .onGloballyPositioned { layoutCoordinates ->
-              viewportSize = layoutCoordinates.size.toSize()
-            }
-            .graphicsLayer(
-              scaleX = scale,
-              scaleY = scale,
-              translationX = animatedOffsetX.coerceIn(
-                -(viewportSize.width * (scale - 1)) / 2f,
-                (viewportSize.width * (scale - 1)) / 2f
-              ),
-              translationY = animatedOffsetY.coerceIn(
-                -(viewportSize.height * (scale - 1)) / 2f,
-                (viewportSize.height * (scale - 1)) / 2f
+    if (pdfRenderer == null) {
+      CircularProgressIndicator(
+        modifier = Modifier.align(Alignment.Center),
+        strokeWidth = 2.dp,
+        color = colors.loadingIndicatorColor
+      )
+    }
+    else {
+      LazyColumn(
+        state = lazyListState,
+        modifier = Modifier
+          .fillMaxSize()
+          .then(
+            Modifier
+              .onGloballyPositioned { layoutCoordinates ->
+                viewportSize = layoutCoordinates.size.toSize()
+              }
+              .graphicsLayer(
+                scaleX = scale,
+                scaleY = scale,
+                translationX = animatedOffsetX.coerceIn(
+                  -(viewportSize.width * (scale - 1)) / 2f,
+                  (viewportSize.width * (scale - 1)) / 2f
+                ),
+                translationY = animatedOffsetY.coerceIn(
+                  -(viewportSize.height * (scale - 1)) / 2f,
+                  (viewportSize.height * (scale - 1)) / 2f
+                )
               )
-            )
-        )
-    ) {
-      items(pageCount, key = { page -> "${pdfProvider.identifier}$page" }) { page ->
-        val cacheKey = MemoryCache.Key("${pdfProvider.identifier}$page")
-        val cachedBitmap = context.imageLoader.memoryCache?.get(cacheKey)?.bitmap
-        var bitmap by remember { mutableStateOf(cachedBitmap) }
+          )
+      ) {
+        items(pageCount, key = { page -> "${pdfProvider.identifier}$page" }) { page ->
+          val cacheKey = MemoryCache.Key("${pdfProvider.identifier}$page")
+          val cachedBitmap = context.imageLoader.memoryCache?.get(cacheKey)?.bitmap
+          var bitmap by remember { mutableStateOf(cachedBitmap) }
 
-        if (bitmap == null) {
-          DisposableEffect(pdfProvider.identifier, page) {
-            val renderingJob = coroutineScope.launch(Dispatchers.IO) {
-              mutex.withLock {
-                if (!coroutineContext.isActive) return@launch
+          if (bitmap == null) {
+            DisposableEffect(pdfProvider.identifier, page) {
+              val renderingJob = coroutineScope.launch(Dispatchers.IO) {
+                mutex.withLock {
+                  if (!coroutineContext.isActive) return@launch
 
-                try {
-                  pdfRenderer?.let {
-                    it.openPage(page).use { pageInRenderer ->
-                      bitmap = Bitmap.createBitmap(
-                        pageInRenderer.width * pdfProvider.bitmapScale,
-                        pageInRenderer.height * pdfProvider.bitmapScale,
-                        Bitmap.Config.ARGB_8888
-                      )
+                  try {
+                    pdfRenderer?.let {
+                      it.openPage(page).use { pageInRenderer ->
+                        bitmap = Bitmap.createBitmap(
+                          pageInRenderer.width * pdfProvider.bitmapScale,
+                          pageInRenderer.height * pdfProvider.bitmapScale,
+                          Bitmap.Config.ARGB_8888
+                        )
 
-                      bitmap?.let { bmp ->
-                        Canvas(bmp).apply {
-                          drawColor(LegacyColor.WHITE)
-                          drawBitmap(bitmap!!, 0f, 0f, null)
+                        bitmap?.let { bmp ->
+                          Canvas(bmp).apply {
+                            drawColor(LegacyColor.WHITE)
+                            drawBitmap(bitmap!!, 0f, 0f, null)
+                          }
                         }
-                      }
 
-                      pageInRenderer.render(
-                        bitmap!!,
-                        null,
-                        null,
-                        PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
-                      )
+                        pageInRenderer.render(
+                          bitmap!!,
+                          null,
+                          null,
+                          PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY
+                        )
+                      }
                     }
+                  } catch (e: Exception) {
+                    e.printStackTrace()
+                    return@launch
                   }
-                } catch (e: Exception) {
-                  e.printStackTrace()
-                  return@launch
                 }
               }
+              onDispose { renderingJob.cancel() }
             }
-            onDispose { renderingJob.cancel() }
+
+            Box(
+              modifier = Modifier
+                .background(color = colors.fillerPageColor)
+                .aspectRatio(fillerAspectRatio)
+                .fillMaxWidth()
+            )
+          } else {
+            val densityInt = LocalDensity.current.density.toInt()
+            val pageWidth = bitmap!!.getScaledWidth(densityInt)
+            val pageHeight = bitmap!!.getScaledHeight(densityInt)
+
+            val imageRequest = ImageRequest.Builder(context)
+              .size(pageWidth, pageHeight)
+              .memoryCacheKey(cacheKey)
+              .data(bitmap)
+              .build()
+
+            Image(
+              modifier = Modifier
+                .background(color = colors.fillerPageColor)
+                .aspectRatio(pageWidth.toFloat() / pageHeight.toFloat()),
+              painter = rememberAsyncImagePainter(imageRequest),
+              contentDescription = null
+            )
           }
-
-          Box(
-            modifier = Modifier
-              .background(color = colors.fillerPageColor)
-              .aspectRatio(fillerAspectRatio)
-              .fillMaxWidth()
-          )
-        } else {
-          val densityInt = LocalDensity.current.density.toInt()
-          val pageWidth = bitmap!!.getScaledWidth(densityInt)
-          val pageHeight = bitmap!!.getScaledHeight(densityInt)
-
-          val imageRequest = ImageRequest.Builder(context)
-            .size(pageWidth, pageHeight)
-            .memoryCacheKey(cacheKey)
-            .data(bitmap)
-            .build()
-
-          Image(
-            modifier = Modifier
-              .background(color = colors.fillerPageColor)
-              .aspectRatio(pageWidth.toFloat() / pageHeight.toFloat()),
-            painter = rememberAsyncImagePainter(imageRequest),
-            contentDescription = null
-          )
         }
       }
-    }
 
-    var textFieldVal by remember { mutableStateOf("") }
+      var textFieldVal by remember { mutableStateOf("") }
 
-    Row(
-      modifier = Modifier
-        .offset((-8).dp, (8).dp)
-        .align(Alignment.TopEnd)
-        .animateContentSize()
-        .clip(RoundedCornerShape(8.dp))
-        .background(color = colors.floatingElementsColor),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Column {
-        IconButton(
-          onClick = { optionsExpanded = !optionsExpanded },
-          colors = IconButtonDefaults.iconButtonColors(contentColor = colors.iconButtonColors.contentColor)
-        ) {
-          Icon(
-            imageVector = if (optionsExpanded) Icons.Rounded.Close else Icons.Rounded.MoreVert,
-            contentDescription = "menu"
-          )
-        }
-        if (optionsExpanded) {
-          Column {
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-              verticalAlignment = Alignment.CenterVertically
-            ) {
-              OutlinedTextField(
-                modifier = Modifier
-                  .padding(4.dp)
-                  .width(120.dp),
-                value = textFieldVal,
-                onValueChange = { textFieldVal = it },
-                colors = colors.textFieldColors,
-                singleLine = true,
-                placeholder = { Text("1-$pageCount") }
-              )
-              FilledIconButton(
-                modifier = Modifier.padding(4.dp),
-                onClick = {
-                  focusManager.clearFocus()
-                  coroutineScope.launch {
-                    lazyListState.animateScrollToItem(
-                      ((textFieldVal.toIntOrNull() ?: 0) - 1).coerceIn(0, pageCount)
-                    )
-                  }
-                },
-                colors = colors.iconButtonColors
-              ) {
-                Icon(
-                  imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
-                  contentDescription = null
-                )
-              }
-            }
-            options.forEach { pdfOption ->
+      Row(
+        modifier = Modifier
+          .offset((-8).dp, (8).dp)
+          .align(Alignment.TopEnd)
+          .animateContentSize()
+          .clip(RoundedCornerShape(8.dp))
+          .background(color = colors.floatingElementsColor),
+        verticalAlignment = Alignment.CenterVertically
+      ) {
+        Column {
+          IconButton(
+            onClick = { optionsExpanded = !optionsExpanded },
+            colors = IconButtonDefaults.iconButtonColors(contentColor = colors.iconButtonColors.contentColor)
+          ) {
+            Icon(
+              imageVector = if (optionsExpanded) Icons.Rounded.Close else Icons.Rounded.MoreVert,
+              contentDescription = "menu"
+            )
+          }
+          if (optionsExpanded) {
+            Column {
+              Spacer(modifier = Modifier.height(8.dp))
               Row(
-                modifier = Modifier.clickable { pdfOption.action() }
+                verticalAlignment = Alignment.CenterVertically
               ) {
-                Text(
-                  modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                  text = pdfOption.title
+                OutlinedTextField(
+                  modifier = Modifier
+                    .padding(4.dp)
+                    .width(120.dp),
+                  value = textFieldVal,
+                  onValueChange = { textFieldVal = it },
+                  colors = colors.textFieldColors,
+                  singleLine = true,
+                  placeholder = { Text("1-$pageCount") }
                 )
+                FilledIconButton(
+                  modifier = Modifier.padding(4.dp),
+                  onClick = {
+                    focusManager.clearFocus()
+                    coroutineScope.launch {
+                      lazyListState.animateScrollToItem(
+                        ((textFieldVal.toIntOrNull() ?: 0) - 1).coerceIn(0, pageCount)
+                      )
+                    }
+                  },
+                  colors = colors.iconButtonColors
+                ) {
+                  Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                    contentDescription = null
+                  )
+                }
+              }
+              options.forEach { pdfOption ->
+                Row(
+                  modifier = Modifier.clickable { pdfOption.action() }
+                ) {
+                  Text(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    text = pdfOption.title
+                  )
+                }
               }
             }
           }
