@@ -3,18 +3,36 @@
 Simple PDF viewer made with and for Jetpack Compose
 
 # Requirements
-- Add `INTERNET` permission to your Android Manifest
+Add `INTERNET` permission to your Android Manifest
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-- [OPTIONAL] Set `android:usesCleartextTraffic="true"` in your Android Manifest `<application>` tag to enable downloading of PDF documents from unsecure `http://` URLs
+[OPTIONAL] Set `android:usesCleartextTraffic="true"` in your Android Manifest `<application>` tag to enable downloading of PDF documents from unsecure `http://` URLs
 ```xml
 <application>
   ...
   android:usesCleartextTraffic="true"
   ...
 </application>
+```
+
+Add Jitpack to your project repositories
+```gradle
+dependencyResolutionManagement {
+  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+  repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+  }
+}
+```
+
+- Add lycoris to your project dependencies
+```gradle
+dependencies {
+  implementation 'com.github.arcanegolem:Materialize:<version>'
+}
 ```
 
 # Example usage
