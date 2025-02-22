@@ -6,7 +6,6 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.ui.graphics.Color
 
 data class PdfViewerColors(
-  val backgroundColor : Color = Color.LightGray,
   val fillerPageColor : Color = Color.Gray,
   val floatingElementsColor : Color = Color.LightGray,
   val iconButtonColors: IconButtonColors = IconButtonColors(

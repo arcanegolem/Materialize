@@ -3,18 +3,23 @@ package arcanegolem.materialize.viewer
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.pdf.PdfRenderer
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -23,8 +28,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,14 +69,15 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.math.sqrt
 import android.graphics.Color as LegacyColor
 
 @Composable
 fun ColumnPdfViewer(
   modifier: Modifier,
   pdfProvider: PdfProvider,
-  colors: PdfViewerColors = PdfViewerColors()
+  colors: PdfViewerColors = PdfViewerColors(),
+  options: List<PdfViewerOption> = emptyList(),
+  fillerAspectRatio : Float
 ) {
   val coroutineScope = rememberCoroutineScope()
   val mutex = remember { Mutex() }
@@ -103,10 +113,11 @@ fun ColumnPdfViewer(
 
   val lazyListState = rememberLazyListState()
 
+  var optionsExpanded by remember { mutableStateOf(false) }
+
   Box(
     modifier = modifier.then(
       Modifier
-        .background(color = colors.backgroundColor)
         .pointerInput(Unit) {
           awaitEachGesture {
             awaitFirstDown()
@@ -191,7 +202,7 @@ fun ColumnPdfViewer(
           Box(
             modifier = Modifier
               .background(color = colors.fillerPageColor)
-              .aspectRatio(1f / sqrt(2f))
+              .aspectRatio(fillerAspectRatio)
               .fillMaxWidth()
           )
         } else {
@@ -220,34 +231,69 @@ fun ColumnPdfViewer(
 
     Row(
       modifier = Modifier
-        .offset((-8).dp, (-8).dp)
-        .align(Alignment.BottomEnd)
+        .offset((-8).dp, (8).dp)
+        .align(Alignment.TopEnd)
+        .animateContentSize()
         .clip(RoundedCornerShape(8.dp))
         .background(color = colors.floatingElementsColor),
       verticalAlignment = Alignment.CenterVertically
     ) {
-      OutlinedTextField(
-        modifier = Modifier
-          .padding(4.dp)
-          .width(120.dp),
-        value = textFieldVal,
-        onValueChange = { textFieldVal = it },
-        colors = colors.textFieldColors,
-        singleLine = true,
-        placeholder = { Text("1-$pageCount") }
-      )
-      FilledIconButton (
-        modifier = Modifier.padding(4.dp),
-        onClick = {
-          focusManager.clearFocus()
-          coroutineScope.launch { lazyListState.animateScrollToItem(((textFieldVal.toIntOrNull() ?: 0) - 1).coerceIn(0, pageCount)) }
-        },
-        colors = colors.iconButtonColors
-      ) {
-        Icon(
-          imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
-          contentDescription = null
-        )
+      Column {
+        IconButton(
+          onClick = { optionsExpanded = !optionsExpanded },
+          colors = IconButtonDefaults.iconButtonColors(contentColor = colors.iconButtonColors.contentColor)
+        ) {
+          Icon(
+            imageVector = if (optionsExpanded) Icons.Rounded.Close else Icons.Rounded.MoreVert,
+            contentDescription = "menu"
+          )
+        }
+        if (optionsExpanded) {
+          Column {
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+              verticalAlignment = Alignment.CenterVertically
+            ) {
+              OutlinedTextField(
+                modifier = Modifier
+                  .padding(4.dp)
+                  .width(120.dp),
+                value = textFieldVal,
+                onValueChange = { textFieldVal = it },
+                colors = colors.textFieldColors,
+                singleLine = true,
+                placeholder = { Text("1-$pageCount") }
+              )
+              FilledIconButton(
+                modifier = Modifier.padding(4.dp),
+                onClick = {
+                  focusManager.clearFocus()
+                  coroutineScope.launch {
+                    lazyListState.animateScrollToItem(
+                      ((textFieldVal.toIntOrNull() ?: 0) - 1).coerceIn(0, pageCount)
+                    )
+                  }
+                },
+                colors = colors.iconButtonColors
+              ) {
+                Icon(
+                  imageVector = Icons.AutoMirrored.Outlined.ArrowForward,
+                  contentDescription = null
+                )
+              }
+            }
+            options.forEach { pdfOption ->
+              Row(
+                modifier = Modifier.clickable { pdfOption.action() }
+              ) {
+                Text(
+                  modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                  text = pdfOption.title
+                )
+              }
+            }
+          }
+        }
       }
     }
   }
