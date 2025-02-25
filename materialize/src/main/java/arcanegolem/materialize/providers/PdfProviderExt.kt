@@ -14,9 +14,11 @@ internal suspend fun Context.getParcelFileDescriptorForPdfProvider(provider: Pdf
     is PdfProvider.ResProvider -> {
       val temp = File(cacheDir, provider.identifier)
 
-      resources.openRawResource(provider.resId).use { inputStream ->
-        FileOutputStream(temp).use { outputStream ->
-          inputStream.copyTo(outputStream)
+      if (!(temp.isFile && temp.exists())){
+        resources.openRawResource(provider.resId).use { inputStream ->
+          FileOutputStream(temp).use { outputStream ->
+            inputStream.copyTo(outputStream)
+          }
         }
       }
 
@@ -26,9 +28,11 @@ internal suspend fun Context.getParcelFileDescriptorForPdfProvider(provider: Pdf
     is PdfProvider.UrlProvider -> {
       val temp = File(cacheDir, provider.identifier)
 
-      DownloadInterface().downloadFile(provider.url).byteStream().use { inputStream ->
-        FileOutputStream(temp).use { outputStream ->
-          inputStream.copyTo(outputStream)
+      if (!(temp.isFile && temp.exists())) {
+        DownloadInterface().downloadFile(provider.url).byteStream().use { inputStream ->
+          FileOutputStream(temp).use { outputStream ->
+            inputStream.copyTo(outputStream)
+          }
         }
       }
 
