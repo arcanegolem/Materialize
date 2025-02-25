@@ -1,5 +1,5 @@
 # Materialize [![](https://jitpack.io/v/arcanegolem/Materialize.svg)](https://jitpack.io/#arcanegolem/Materialize)
-
+![Materialize Header](https://github.com/arcanegolem/Materialize/blob/master/files/materialize_header.png)
 Simple PDF viewer made with and for Jetpack Compose
 
 # Requirements
