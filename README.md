@@ -17,7 +17,7 @@ Simple PDF viewer made with and for Jetpack Compose
 </application>
 ```
 
-- Add materialize to your project dependencies
+Add materialize to your project dependencies
 ```gradle
 dependencies {
   implementation("io.github.arcanegolem:materialize:<version>")
