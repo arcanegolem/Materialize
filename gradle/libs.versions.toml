@@ -11,6 +11,7 @@ activityCompose = "1.10.0"
 composeBom = "2025.02.00"
 okhttp = "4.12.0"
 retrofit = "2.9.0"
+jreleaser = "1.16.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,5 +37,6 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+jreleaser = { id = "org.jreleaser", version.ref = "jreleaser" }
 maven-publish = { id = "maven-publish" }
 
