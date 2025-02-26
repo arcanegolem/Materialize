@@ -64,7 +64,7 @@ publishing {
   publications {
     register<MavenPublication>("release") {
       groupId = "arcanegolem"
-      artifactId = "materialize"
+      artifactId = "Materialize"
       version = "1.0.0"
 
       afterEvaluate {
