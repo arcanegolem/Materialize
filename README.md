@@ -1,4 +1,4 @@
-# Materialize [![](https://jitpack.io/v/arcanegolem/Materialize.svg)](https://jitpack.io/#arcanegolem/Materialize)
+# Materialize
 ![Materialize Header](https://github.com/arcanegolem/Materialize/blob/master/files/materialize_header.png)
 Simple PDF viewer made with and for Jetpack Compose
 
@@ -17,13 +17,12 @@ Add `INTERNET` permission to your Android Manifest
 </application>
 ```
 
-Add Jitpack to your project repositories
+Make sure mavenCentral() is in your project's repositories
 ```gradle
 dependencyResolutionManagement {
   repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
   repositories {
     mavenCentral()
-    maven { url 'https://jitpack.io' }
   }
 }
 ```
@@ -31,7 +30,7 @@ dependencyResolutionManagement {
 - Add lycoris to your project dependencies
 ```gradle
 dependencies {
-  implementation 'com.github.arcanegolem:Materialize:<version>'
+  implementation("io.github.arcanegolem:materialize:<version>")
 }
 ```
 
