@@ -1,4 +1,4 @@
-# Materialize
+# Materialize ![Maven Central Version](https://img.shields.io/maven-central/v/io.github.arcanegolem/materialize)
 ![Materialize Header](https://github.com/arcanegolem/Materialize/blob/master/files/materialize_header.png)
 Simple PDF viewer made with and for Jetpack Compose
 
