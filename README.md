@@ -3,7 +3,7 @@
 Simple PDF viewer made with and for Jetpack Compose
 
 # Requirements
-Add `INTERNET` permission to your Android Manifest
+[OPTIONAL] Add `INTERNET` permission to your Android Manifest if you intend to retrive PDF documents via URLs
 ```xml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
@@ -17,17 +17,7 @@ Add `INTERNET` permission to your Android Manifest
 </application>
 ```
 
-Make sure mavenCentral() is in your project's repositories
-```gradle
-dependencyResolutionManagement {
-  repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-  repositories {
-    mavenCentral()
-  }
-}
-```
-
-- Add lycoris to your project dependencies
+- Add materialize to your project dependencies
 ```gradle
 dependencies {
   implementation("io.github.arcanegolem:materialize:<version>")
