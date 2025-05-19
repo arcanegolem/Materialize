@@ -58,6 +58,7 @@ ColumnPdfViewer(
       }
     )
   ),
-  fillerAspectRatio = 1f / sqrt(2f)
+  fillerAspectRatio = 1f / sqrt(2f),
+  pageSpacing = 0.dp
 )
 ```
