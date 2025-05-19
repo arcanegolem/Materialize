@@ -1,6 +1,5 @@
 package arcanegolem.materialize.viewer
 
-import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.pdf.PdfRenderer
 import androidx.compose.animation.animateContentSize
@@ -57,8 +56,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.core.graphics.createBitmap
 import arcanegolem.materialize.providers.PdfProvider
 import arcanegolem.materialize.providers.getParcelFileDescriptorForPdfProvider
 import coil.compose.rememberAsyncImagePainter
@@ -87,6 +88,7 @@ fun ColumnPdfViewer(
   pdfProvider: PdfProvider,
   colors: PdfViewerColors = PdfViewerColors(),
   options: List<PdfViewerOption> = emptyList(),
+  pageSpacing : Dp = 0.dp,
   fillerAspectRatio : Float
 ) {
   val coroutineScope = rememberCoroutineScope()
@@ -187,10 +189,9 @@ fun ColumnPdfViewer(
                   try {
                     pdfRenderer?.let {
                       it.openPage(page).use { pageInRenderer ->
-                        bitmap = Bitmap.createBitmap(
+                        bitmap = createBitmap(
                           pageInRenderer.width * pdfProvider.bitmapScale,
-                          pageInRenderer.height * pdfProvider.bitmapScale,
-                          Bitmap.Config.ARGB_8888
+                          pageInRenderer.height * pdfProvider.bitmapScale
                         )
 
                         bitmap?.let { bmp ->
@@ -224,9 +225,8 @@ fun ColumnPdfViewer(
                 .fillMaxWidth()
             )
           } else {
-            val densityInt = LocalDensity.current.density.toInt()
-            val pageWidth = bitmap!!.getScaledWidth(densityInt)
-            val pageHeight = bitmap!!.getScaledHeight(densityInt)
+            val pageWidth = bitmap!!.width
+            val pageHeight = bitmap!!.height
 
             val imageRequest = ImageRequest.Builder(context)
               .size(pageWidth, pageHeight)
@@ -234,13 +234,24 @@ fun ColumnPdfViewer(
               .data(bitmap)
               .build()
 
+            val originalPageWidthDp = with(LocalDensity.current) { pageWidth.toDp() }
+            val diff = with(LocalDensity.current) { viewportSize.width.toDp() / originalPageWidthDp }
+
+            val trueWidth = originalPageWidthDp * diff
+            val trueHeight = with(LocalDensity.current) { pageHeight.toDp() * diff }
+
             Image(
               modifier = Modifier
                 .background(color = colors.fillerPageColor)
-                .aspectRatio(pageWidth.toFloat() / pageHeight.toFloat()),
+                .height(trueHeight)
+                .width(trueWidth),
               painter = rememberAsyncImagePainter(imageRequest),
               contentDescription = null
             )
+
+            if (page < pageCount - 1) {
+              Spacer(modifier = Modifier.height(pageSpacing))
+            }
           }
         }
       }
