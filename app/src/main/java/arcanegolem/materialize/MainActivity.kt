@@ -13,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import arcanegolem.materialize.providers.PdfProvider
 import arcanegolem.materialize.ui.theme.MaterializeTheme
 import arcanegolem.materialize.viewer.ColumnPdfViewer
@@ -57,7 +58,8 @@ class MainActivity : ComponentActivity() {
                   }
                 )
               ),
-              fillerAspectRatio = 1f / sqrt(2f)
+              fillerAspectRatio = 1f / sqrt(2f),
+              pageSpacing = 4.dp
             )
           }
         }
