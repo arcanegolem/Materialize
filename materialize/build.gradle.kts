@@ -58,6 +58,7 @@ dependencies {
   debugImplementation(libs.androidx.ui.tooling)
   debugImplementation(libs.androidx.ui.test.manifest)
 
+  implementation(platform(libs.coil.bom))
   implementation(libs.coil.compose)
 
   implementation(libs.retrofit)
